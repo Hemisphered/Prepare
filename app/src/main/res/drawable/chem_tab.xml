@@ -8,7 +8,7 @@
     <item>
         <shape
             android:shape="rectangle">
-            <solid android:color="@color/bio_overlay"/>
+            <solid android:color="@color/chem_overlay"/>
         </shape>
     </item>
 

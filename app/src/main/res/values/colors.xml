@@ -5,15 +5,19 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="primary_physics">#3498db</color>
-    <color name="primary_chemistry">#27ae60</color>
-    <color name="primary_biology">#9b59b6</color>
+    <color name="primary_biology">#27ae60</color>
+    <color name="primary_chemistry">#9b59b6</color>
 
     <!-- Use these to make homepage tiles -->
     <color name="physics_overlay">#8D3498db</color>
     <color name="bio_overlay">#6D27ae60</color>
-    <color name="chem_overlay">#7D9b59b6</color>
+    <color name="chem_overlay">#8D9b59b6</color>
 
 
     <!-- Use it for texts -->
     <color name="material_black">#383838</color>
+
+    <!-- Night Mode Colors -->
+    <color name="night_mode_background">#142634</color>
+    <color name="night_mode_text">#BDC7C1</color>
 </resources>

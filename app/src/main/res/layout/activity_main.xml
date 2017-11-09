@@ -5,16 +5,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FFF"
     android:orientation="vertical"
-    tools:context="com.madhouseapps.prepare.MainActivity">
+    tools:context="com.madhouseapps.prepare.activities.MainActivity">
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="10dp"
+        android:layout_gravity="center"
         android:layout_marginTop="15dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:gravity="center"
+        android:transitionName="login_activity_transition"
+        tools:ignore="UnusedAttribute">
 
         <ImageView
             android:id="@+id/ellipse_img"
@@ -26,9 +29,9 @@
             android:id="@+id/LL_txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="27dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_horizontal"
+            android:layout_gravity="center"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
             <TextView
@@ -38,7 +41,7 @@
                 android:layout_weight="1"
                 android:text="PRE"
                 android:textColor="@color/material_black"
-                android:textSize="32sp"/>
+                android:textSize="28sp"/>
 
             <TextView
                 android:id="@+id/txt_pare"
@@ -48,125 +51,156 @@
                 android:layout_weight="1"
                 android:text="PARE"
                 android:textColor="@color/material_black"
-                android:textSize="32sp"/>
+                android:textSize="28sp"/>
         </LinearLayout>
 
         <TextView
             android:id="@+id/txt_by"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="10dp"
-            android:layout_toEndOf="@+id/LL_txt"
+            android:layout_marginTop="38dp"
+            android:layout_toEndOf="@id/LL_txt"
             android:text="by MadHouse"
-            android:textColor="@color/material_black"/>
+            android:textColor="@color/material_black"
+            android:textSize="13dp"/>
 
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="7"
-        android:orientation="vertical">
+        android:layout_weight="3"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:weightSum="3">
 
-        <FrameLayout
+
+        <android.support.v7.widget.CardView
             android:id="@+id/physics_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
-            android:background="@drawable/rounded_rect">
-
-            <ImageView
-                android:id="@+id/imageView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="3dp"
-                android:background="@drawable/rounded_rect"
-                android:scaleType="fitXY"
-                android:tint="@color/physics_overlay"
-                app:srcCompat="@drawable/physics_tab"/>
+            android:elevation="0dp"
+            app:cardCornerRadius="15dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="15dp"
-                android:layout_marginTop="15dp"
+                android:background="@drawable/physics_tab"
+                android:backgroundTintMode="src_over"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/txt_phy"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:gravity="left"
-                    android:text="PHYSICS"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginTop="15dp"
                     android:maxLines="10"
+                    android:text="PHYSICS"
                     android:textColor="#FFF"
-                    android:textSize="38sp"
+                    android:textSize="24sp"
                     android:textStyle="bold"/>
 
                 <TextView
                     android:id="@+id/txt_phy_chp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
                     android:text="WAVE MOTIONS, MECHANICS, RAY OPTICS,ELECTROSTATICS, ETC."
                     android:textColor="#FFF"
-                    android:textSize="18sp"/>
+                    android:textSize="14sp"/>
             </LinearLayout>
+        </android.support.v7.widget.CardView>
 
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/biology_layout"
+        <android.support.v7.widget.CardView
+            android:id="@+id/chem_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:elevation="0dp"
+            app:cardCornerRadius="15dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/chem_tab"
+                android:backgroundTintMode="src_over"
                 android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txt_chem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginTop="15dp"
+                    android:gravity="left"
+                    android:maxLines="10"
+                    android:text="CHEMISTRY"
+                    android:textColor="#FFF"
+                    android:textSize="24sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/txt_chem_chp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:text="Complete IIT Syllabus > "
+                    android:textColor="#FFF"
+                    android:textSize="14sp"/>
             </LinearLayout>
+        </android.support.v7.widget.CardView>
 
-            <ImageView
-                android:id="@+id/imageView7"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="3dp"
-                android:scaleType="fitXY"
-                android:tint="@color/bio_overlay"
-                app:srcCompat="@drawable/bio_tab"/>
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/chem_layout"
+        <android.support.v7.widget.CardView
+            android:id="@+id/biology_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="10dp"
-            android:layout_weight="1">
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:elevation="0dp"
+            app:cardCornerRadius="15dp">
 
-            <ImageView
-                android:id="@+id/imageView8"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="3dp"
-                android:scaleType="fitXY"
-                android:tint="@color/chem_overlay"
-                app:srcCompat="@drawable/chem_tab"/>
-        </FrameLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bio_tab"
+                android:backgroundTintMode="src_over"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txt_bio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginTop="15dp"
+                    android:gravity="left"
+                    android:maxLines="10"
+                    android:text="BIOLOGY"
+                    android:textColor="#FFF"
+                    android:textSize="24sp"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/txt_bio_chp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:text="PLANT PHYSIOLOGY, CELL STRUCTURE, ECOLOGY, GENETICS, ETC."
+                    android:textColor="#FFF"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/share_button"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_gravity="center_horizontal"
@@ -181,12 +215,12 @@
             android:layout_gravity="center"
             android:text="SHARE  "
             android:textColor="@color/material_black"
-            android:textSize="24sp"/>
+            android:textSize="13sp"/>
 
         <ImageView
             android:id="@+id/imageView9"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_gravity="center"
             android:rotation="180"
             app:srcCompat="@drawable/share"/>
