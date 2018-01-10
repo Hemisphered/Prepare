@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.madhouseapps.prepare.R;
+import com.madhouseapps.prepare.adapters.ProgressDialogAdapter;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -54,7 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         poppins_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_bold.ttf");
         ench_celeb = Typeface.createFromAsset(getAssets(), "fonts/enchanting_celebrations.ttf");
         preTxt.setTypeface(poppins_light);
-        pareTxt.setTypeface(poppins);
+        pareTxt.setTypeface(poppins_bold);
         poweredByTxt.setTypeface(poppins_bold);
         byTxt.setTypeface(ench_celeb);
         loginBtn.setTypeface(poppins_bold);
@@ -113,6 +114,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        final ProgressDialogAdapter progressDialogAdapter = new ProgressDialogAdapter(LoginActivity.this);
+        progressDialogAdapter.ShowProgressBar();
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -145,7 +148,9 @@ public class LoginActivity extends AppCompatActivity {
                                     snackbar.dismiss();
                                 }
                             });
+                            progressDialogAdapter.HideProgressDialog();
                             snackbar.show();
+
                         }
 
                     }

@@ -29,7 +29,7 @@
                 android:padding="5dp"
                 android:text="ChapterName"
                 android:textColor="#FFF"
-                android:textSize="17sp"/>
+                android:textSize="15sp"/>
         </LinearLayout>
     </android.support.v7.widget.CardView>
 

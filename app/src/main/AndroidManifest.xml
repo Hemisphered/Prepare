@@ -3,6 +3,8 @@
           package="com.madhouseapps.prepare">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -11,15 +13,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/NoActionBar">
-        <activity android:name=".activities.MainActivity">
+        <activity
+            android:name=".activities.MainActivity"
+            android:noHistory="true">
         </activity>
-        <activity android:name=".activities.PhysicsActivity">
-        </activity>
-        <activity android:name=".activities.BiologyActivity">
-        </activity>
-        <activity android:name=".activities.ChemistryActivity">
-        </activity>
-        <activity android:name=".activities.ChapterActivity">
+        <activity
+            android:name="com.folioreader.ui.folio.activity.FolioActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name">
         </activity>
         <activity android:name=".activities.LoginActivity">
             <intent-filter>
@@ -27,6 +28,14 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".activities.SubActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_sub"
+            android:theme="@style/NoActionBar">
+        </activity>
+        <activity android:name=".activities.BookmarksActivity">
         </activity>
     </application>
 
