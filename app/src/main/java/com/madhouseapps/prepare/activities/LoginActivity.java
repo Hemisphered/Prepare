@@ -115,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
         final ProgressDialogAdapter progressDialogAdapter = new ProgressDialogAdapter(LoginActivity.this);
-        progressDialogAdapter.ShowProgressBar();
+        progressDialogAdapter.showDialog();
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -148,7 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                                     snackbar.dismiss();
                                 }
                             });
-                            progressDialogAdapter.HideProgressDialog();
+                            progressDialogAdapter.hideDialog();
                             snackbar.show();
 
                         }

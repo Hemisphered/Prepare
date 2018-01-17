@@ -121,7 +121,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/ripple_chem"
+                android:background="@drawable/ripple_chemistry"
                 android:backgroundTintMode="src_over"
                 android:orientation="vertical">
 
@@ -162,7 +162,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/ripple_bio"
+                android:background="@drawable/ripple_biology"
                 android:backgroundTintMode="src_over"
                 android:orientation="vertical">
 
@@ -229,7 +229,7 @@
             android:layout_height="24dp"
             android:layout_gravity="center|end"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_menu_share"/>
+            app:srcCompat="@drawable/share"/>
 
     </LinearLayout>
 

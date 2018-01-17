@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         poppins = Typeface.createFromAsset(getAssets(), "fonts/poppins.ttf");
         poppins_light = Typeface.createFromAsset(getAssets(), "fonts/poppins_light.ttf");
         poppins_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_bold.ttf");
-        poppinsExtra_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_extrabold.ttf");
+        //poppinsExtra_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_extrabold.ttf");
         ench_celeb = Typeface.createFromAsset(getAssets(), "fonts/enchanting_celebrations.ttf");
         preTxt.setTypeface(poppins_light);
         pareTxt.setTypeface(poppins_bold);
@@ -119,9 +119,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "No Bookmarks Added", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onClick: " + bookmaksList);
-                    Intent intent = new Intent(MainActivity.this, BookmarksActivity.class);
-                    intent.putExtra("bookmarksList", (Serializable) bookmaksList);
-                    startActivity(intent);
+                    //Intent intent = new Intent(MainActivity.this, BookmarksActivity.class);
+                    //intent.putExtra("bookmarksList", (Serializable) bookmaksList);
+                    //startActivity(intent);
                 }
             }
         });
