@@ -119,9 +119,9 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "No Bookmarks Added", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onClick: " + bookmaksList);
-                    //Intent intent = new Intent(MainActivity.this, BookmarksActivity.class);
-                    //intent.putExtra("bookmarksList", (Serializable) bookmaksList);
-                    //startActivity(intent);
+                    Intent intent = new Intent(MainActivity.this, BookmarkActivity.class);
+                    intent.putExtra("bookmarksList", (Serializable) bookmaksList);
+                    startActivity(intent);
                 }
             }
         });

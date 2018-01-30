@@ -11,7 +11,7 @@
 
     <!-- Use these to make homepage tiles -->
     <color name="physics_overlay">#8D3498db</color>
-    <color name="bio_overlay">#6D27ae60</color>
+        <color name="bio_overlay">#6D27ae60</color>
     <color name="chem_overlay">#8D9b59b6</color>
 
 

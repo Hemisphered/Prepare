@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:layout_marginTop="?attr/actionBarSize"
     android:background="@color/white"
-    android:orientation="vertical"
     android:paddingTop="5dp">
 
 
@@ -35,7 +34,7 @@
         android:layout_marginStart="10dp"
         android:layout_weight="10"
         android:horizontalSpacing="10dp"
-        android:numColumns="auto_fit"
+        android:numColumns="2"
         android:scrollbars="none"
         android:stretchMode="columnWidth"
         android:verticalSpacing="10dp" />

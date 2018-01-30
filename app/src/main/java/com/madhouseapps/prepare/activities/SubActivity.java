@@ -2,6 +2,7 @@ package com.madhouseapps.prepare.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
@@ -22,17 +23,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.folioreader.util.FolioReader;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.gson.Gson;
 import com.madhouseapps.prepare.R;
 import com.madhouseapps.prepare.adapters.CustomExpandableListAdapter;
 import com.madhouseapps.prepare.adapters.ProgressDialogAdapter;
@@ -43,6 +52,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -53,10 +63,11 @@ import java.util.Map;
 
 public class SubActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
+    private List<String> bookmaksList = new ArrayList<>();
     private DrawerLayout mDrawerLayout;
     private static final String TAG = "SubActivity";
     private ActionBarDrawerToggle mDrawerToggle;
+    File pdfFile;
     private String mActivityTitle;
     private String[] items;
     private String subject;
@@ -77,6 +88,7 @@ public class SubActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sub);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         Intent intent = getIntent();
         subject = intent.getStringExtra("Subject");
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -85,6 +97,7 @@ public class SubActivity extends AppCompatActivity
         Typeface poppins_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_bold.ttf");
         Typeface poppins = Typeface.createFromAsset(getAssets(), "fonts/poppins.ttf");
         title.setTypeface(poppins_bold);
+        title.setTextSize(24);
         ImageButton navigation = findViewById(R.id.navigation);
 
         Bundle bundle = new Bundle();
@@ -138,7 +151,24 @@ public class SubActivity extends AppCompatActivity
                 startActivity(intent);
             }
         });
-
+        bookmark.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SharedPreferences sharedPreferences = getSharedPreferences("Bookmarks", 0);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                Gson gson = new Gson();
+                bookmaksList = new ArrayList<>();
+                bookmaksList = gson.fromJson(sharedPreferences.getString("bookmarksList", ""), ArrayList.class);
+                if (bookmaksList == null) {
+                    Toast.makeText(SubActivity.this, "No Bookmarks Added", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d(TAG, "onClick: " + bookmaksList);
+                    Intent intent = new Intent(SubActivity.this, BookmarkActivity.class);
+                    intent.putExtra("bookmarksList", (Serializable) bookmaksList);
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
 
@@ -326,6 +356,9 @@ public class SubActivity extends AppCompatActivity
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            
+        }
     }
 
 
@@ -339,6 +372,11 @@ public class SubActivity extends AppCompatActivity
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public int getRequestedOrientation() {
+        return super.getRequestedOrientation();
     }
 
     private void displayPDF(String fileURL, String fileName) {
@@ -359,48 +397,36 @@ public class SubActivity extends AppCompatActivity
                     progressDialogAdapter.showDialog();
                 }
             });
-            File pdfFile = new File(getApplicationContext().getFilesDir(), fileName);
+            pdfFile = new File(getApplicationContext().getFilesDir(), fileName);
             try {
                 pdfFile.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            try {
-                if (fileUrl != null) {
-                    Log.d(TAG, "doInBackground: file" + fileUrl);
-                    URL url = new URL(fileUrl);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.setDoOutput(true);
-                    urlConnection.connect();
-
-                    InputStream inputStream = urlConnection.getInputStream();
-                    FileOutputStream fileOutputStream = getApplicationContext().openFileOutput(fileName, Context.MODE_PRIVATE);
-                    int totalSize = urlConnection.getContentLength();
-
-                    byte[] buffer = new byte[1024 * 1024];
-                    int bufferLength;
-                    while ((bufferLength = inputStream.read(buffer)) > 0) {
-                        fileOutputStream.write(buffer, 0, bufferLength);
-                    }
-                    fileOutputStream.close();
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            runOnUiThread(new Runnable() {
+            StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileUrl);
+            Log.d(TAG, "doInBackground: " + islandRef);
+            Log.d(TAG, "onSuccess: " + pdfFile.length());
+            islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
-                public void run() {
-                    progressDialogAdapter.hideDialog();
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    Log.d(TAG, "onSuccess: " + pdfFile.length());
+
+                    FolioReader folioReader = new FolioReader(getApplicationContext());
+                    Log.d(TAG, "doInBackground: " + pdfFile.getAbsolutePath());
+                    folioReader.openBook(pdfFile.getAbsolutePath());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialogAdapter.hideDialog();
+                        }
+                    });
                 }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                }                    // Handle any errors
+
             });
-            FolioReader folioReader = new FolioReader(SubActivity.this);
-            Log.d(TAG, "doInBackground: " + pdfFile.getPath());
-            folioReader.openBook(pdfFile.getPath());
             return null;
         }
     }

@@ -15,11 +15,11 @@
         android:theme="@style/NoActionBar">
         <activity
             android:name=".activities.MainActivity"
-            android:noHistory="true"></activity>
+            android:noHistory="true" />
         <activity
             android:name="com.folioreader.ui.folio.activity.FolioActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"></activity>
+            android:label="@string/app_name" />
         <activity android:name=".activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,8 +31,8 @@
             android:name=".activities.SubActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_sub"
-            android:theme="@style/NoActionBar"></activity>
-        <activity android:name=".activities.BookmarksActivity"></activity>
+            android:theme="@style/NoActionBar" />
+        <activity android:name=".activities.BookmarkActivity"></activity>
     </application>
 
 </manifest>

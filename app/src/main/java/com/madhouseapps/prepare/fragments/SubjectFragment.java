@@ -3,16 +3,15 @@ package com.madhouseapps.prepare.fragments;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -26,10 +25,7 @@ import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toolbar;
 
-import com.folioreader.util.FolioReader;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -41,19 +37,12 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.madhouseapps.prepare.R;
-import com.madhouseapps.prepare.activities.LoginActivity;
 import com.madhouseapps.prepare.adapters.ChapterGridAdapter;
 import com.madhouseapps.prepare.adapters.ProgressDialogAdapter;
 import com.madhouseapps.prepare.helpers.SearchChapters;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +89,7 @@ public class SubjectFragment extends Fragment {
         } else if (subject.equals("biology")) {
             progressBar.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.primary_biology)));
         } else if (subject.equals("chemistry")) {
-            progressBar.setBackgroundTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.primary_chemistry)));
+            progressBar.setIndeterminateTintList(ColorStateList.valueOf(getActivity().getResources().getColor(R.color.primary_chemistry)));
         }
         firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference(subject + "_chapters");
@@ -138,6 +127,7 @@ public class SubjectFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+                Log.d(TAG, "onItemClick: ");
                 final String chapterName = chapterList.get(i);
                 FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
                 DatabaseReference databaseReference = firebaseDatabase.getReference(subject + "_detailed_chapters/" + chapterList.get(i).replace(" ", ""));
@@ -196,30 +186,62 @@ public class SubjectFragment extends Fragment {
         return rootView;
     }
 
-    private void displayPDF(String fileURL, String fileName) {
+    private void displayPDF(final String fileURL, final String fileName) {
         Log.d(TAG, "displayPDF: " + fileURL);
-        new DownloadFile().execute(fileURL, fileName);
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progressDialogAdapter = new ProgressDialogAdapter(getActivity());
+                progressDialogAdapter.showDialog();
+            }
+        });
+        pdfFile = new File(getContext().getFilesDir(), fileName.toLowerCase().replace(" ", "").replace("'", ""));
+        try {
+            pdfFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileURL);
+        Log.d(TAG, "doInBackground: " + islandRef);
+        Log.d(TAG, "onSuccess: " + pdfFile.length());
+        islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "onSuccess: " + pdfFile.length());
+                Bundle bundle = new Bundle();
+                bundle.putString("FileName", fileName);
+                bundle.putString("FileURL", fileURL);
+                ChapterFragment chapterFragment = new ChapterFragment();
+                chapterFragment.setArguments(bundle);
+                FragmentManager fragmentManager =
+                        getActivity().getSupportFragmentManager();
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, chapterFragment)
+                        .commit();
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialogAdapter.hideDialog();
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+            }                    // Handle any errors
+
+        });
+
     }
 
     private class DownloadFile extends AsyncTask<String, Void, Void> {
 
         @Override
         protected Void doInBackground(String... strings) {
-            String fileUrl = strings[0];
-            String fileName = strings[1];
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progressDialogAdapter = new ProgressDialogAdapter(getActivity());
-                    progressDialogAdapter.showDialog();
-                }
-            });
-            pdfFile = new File(getContext().getFilesDir(), fileName.toLowerCase().replace(" ", "").replace("'", ""));
-            try {
-                pdfFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            final String fileUrl = strings[0];
+            final String fileName = strings[1];
+
            /* try {
                 if (fileUrl != null) {
                     URL url = new URL(fileUrl);
@@ -247,30 +269,6 @@ public class SubjectFragment extends Fragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }*/
-            StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileUrl);
-            Log.d(TAG, "doInBackground: " + islandRef);
-            Log.d(TAG, "onSuccess: " + pdfFile.length());
-            islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(TAG, "onSuccess: " + pdfFile.length());
-
-                    FolioReader folioReader = new FolioReader(getActivity());
-                    Log.d(TAG, "doInBackground: " + pdfFile.getAbsolutePath());
-                    folioReader.openBook(pdfFile.getAbsolutePath());
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialogAdapter.hideDialog();
-                        }
-                    });
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                }                    // Handle any errors
-
-            });
 
 
             return null;
@@ -323,4 +321,5 @@ public class SubjectFragment extends Fragment {
 
 
     }
+
 }

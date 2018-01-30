@@ -1,17 +1,42 @@
 package com.madhouseapps.prepare.adapters;
 
+import android.app.Activity;
+import android.app.Application;
+import android.app.Fragment;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.folioreader.util.FolioReader;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.gson.Gson;
 import com.madhouseapps.prepare.R;
+import com.madhouseapps.prepare.activities.SubActivity;
+import com.madhouseapps.prepare.fragments.ChapterFragment;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +49,8 @@ public class ChapterGridAdapter extends BaseAdapter {
     private Context context;
     private List<String> chapterList;
     private List<String> searchList;
+    private ProgressDialogAdapter progressDialogAdapter;
+    File pdfFile;
     private String subject;
     private Typeface poppins_bold;
 
@@ -66,15 +93,157 @@ public class ChapterGridAdapter extends BaseAdapter {
             } else {
                 linearLayout.setBackgroundResource(R.drawable.ripple_chem_grid);
             }
-            TextView textView = gridView.findViewById(R.id.chpName);
+            final TextView textView = gridView.findViewById(R.id.chpName);
             textView.setText(chapterList.get(i).toUpperCase());
             Log.d(TAG, "getView: " + chapterList);
             Log.d(TAG, "getView: " + chapterList.get(i));
             textView.setTypeface(poppins_bold);
-        } else {
+            SharedPreferences sharedPreferences = context.getSharedPreferences("Bookmarks", 0);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            Gson gson = new Gson();
+            List<String> bookmaksList = new ArrayList<>();
+            bookmaksList = gson.fromJson(sharedPreferences.getString("bookmarksList", ""), ArrayList.class);
+            List<String> subjectList = new ArrayList<>();
+            subjectList = gson.fromJson(sharedPreferences.getString("subjectList", ""), ArrayList.class);
+
+            final ImageButton imageButton = gridView.findViewById(R.id.bookmark_grid);
+            imageButton.setTag(i);
+            if (bookmaksList != null) {
+                if (bookmaksList.contains(chapterList.get(i))) {
+                    imageButton.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white));
+                } else {
+                    imageButton.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white_border));
+                }
+            }
+            textView.setTag(i);
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    Log.d(TAG, "onClick: ");
+                    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+                    DatabaseReference databaseReference = firebaseDatabase.getReference(subject + "_detailed_chapters/" + chapterList.get((Integer) view.getTag()).replace(" ", ""));
+                    Log.d(TAG, "onClick: " + chapterList.get((Integer) view.getTag()));
+                    Log.d(TAG, "onClick: " + databaseReference);
+                    databaseReference.addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            Log.d(TAG, "onChildAdded: " + dataSnapshot);
+                            String fileURL = dataSnapshot.getValue(String.class);
+                            Log.d(TAG, "onChildAdded: " + fileURL);
+                            displayPDF(fileURL, chapterList.get((Integer) view.getTag()));
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            });
+            imageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    SharedPreferences sharedPreferences = context.getSharedPreferences("Bookmarks", 0);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    Gson gson = new Gson();
+                    Log.d(TAG, "onClick: " + view.getTag().toString());
+                    List<String> bookmaksList = new ArrayList<>();
+                    bookmaksList = gson.fromJson(sharedPreferences.getString("bookmarksList", ""), ArrayList.class);
+                    List<String> subjectList = new ArrayList<>();
+                    subjectList = gson.fromJson(sharedPreferences.getString("subjectList", ""), ArrayList.class);
+                    if (bookmaksList == null || bookmaksList.isEmpty()) {
+                        bookmaksList = new ArrayList<>();
+                        subjectList = new ArrayList<>();
+                    }
+                    Log.d(TAG, "onClick: " + bookmaksList);
+                    String chapterName = chapterList.get((Integer) view.getTag());
+                    if (bookmaksList.contains(chapterName)) {
+                        subjectList.remove(bookmaksList.indexOf(chapterName));
+                        bookmaksList.remove(chapterName);
+                        ImageButton imageButton1 = (ImageButton) view;
+                        imageButton1.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white_border));
+                    } else {
+                        bookmaksList.add(chapterName);
+                        subjectList.add(subject);
+                        ImageButton imageButton1 = (ImageButton) view;
+                        imageButton1.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white));
+                    }
+                    editor.putString("bookmarksList", gson.toJson(bookmaksList));
+                    editor.putString("subjectList", gson.toJson(subjectList));
+                    editor.commit();
+                    Log.d(TAG, "onClick: " + bookmaksList);
+
+                }
+            });
+        } else
+
+        {
             gridView = view;
         }
         return gridView;
+    }
+
+    private void displayPDF(final String fileURL, final String fileName) {
+        Log.d(TAG, "displayPDF: " + fileURL);
+        ((Activity) context).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progressDialogAdapter = new ProgressDialogAdapter(((Activity) context));
+                progressDialogAdapter.showDialog();
+            }
+        });
+        pdfFile = new File(context.getFilesDir(), fileName.toLowerCase().replace(" ", "").replace("'", ""));
+        try {
+            pdfFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileURL);
+        Log.d(TAG, "doInBackground: " + islandRef);
+        Log.d(TAG, "onSuccess: " + pdfFile.length());
+        islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                Log.d(TAG, "onSuccess: " + pdfFile.length());
+                Bundle bundle = new Bundle();
+                bundle.putString("FileName", fileName);
+                bundle.putString("FileURL", fileURL);
+                ChapterFragment chapterFragment = new ChapterFragment();
+                chapterFragment.setArguments(bundle);
+                FragmentManager fragmentManager =
+                        ((SubActivity) context).getSupportFragmentManager();
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, chapterFragment)
+                        .commit();
+                ((Activity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialogAdapter.hideDialog();
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+            }                    // Handle any errors
+
+        });
     }
 
 }
