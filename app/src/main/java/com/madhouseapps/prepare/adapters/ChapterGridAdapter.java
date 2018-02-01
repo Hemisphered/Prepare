@@ -18,6 +18,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.folioreader.util.FolioReader;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -176,11 +177,13 @@ public class ChapterGridAdapter extends BaseAdapter {
                         subjectList.remove(bookmaksList.indexOf(chapterName));
                         bookmaksList.remove(chapterName);
                         ImageButton imageButton1 = (ImageButton) view;
+                        Toast.makeText(context, "Bookmark removed", Toast.LENGTH_SHORT).show();
                         imageButton1.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white_border));
                     } else {
                         bookmaksList.add(chapterName);
                         subjectList.add(subject);
                         ImageButton imageButton1 = (ImageButton) view;
+                        Toast.makeText(context, "Bookmark added", Toast.LENGTH_SHORT).show();
                         imageButton1.setImageDrawable(context.getResources().getDrawable(R.drawable.bookmark_white));
                     }
                     editor.putString("bookmarksList", gson.toJson(bookmaksList));
@@ -200,50 +203,19 @@ public class ChapterGridAdapter extends BaseAdapter {
 
     private void displayPDF(final String fileURL, final String fileName) {
         Log.d(TAG, "displayPDF: " + fileURL);
-        ((Activity) context).runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progressDialogAdapter = new ProgressDialogAdapter(((Activity) context));
-                progressDialogAdapter.showDialog();
-            }
-        });
-        pdfFile = new File(context.getFilesDir(), fileName.toLowerCase().replace(" ", "").replace("'", ""));
-        try {
-            pdfFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileURL);
-        Log.d(TAG, "doInBackground: " + islandRef);
-        Log.d(TAG, "onSuccess: " + pdfFile.length());
-        islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                Log.d(TAG, "onSuccess: " + pdfFile.length());
-                Bundle bundle = new Bundle();
-                bundle.putString("FileName", fileName);
-                bundle.putString("FileURL", fileURL);
-                ChapterFragment chapterFragment = new ChapterFragment();
-                chapterFragment.setArguments(bundle);
-                FragmentManager fragmentManager =
-                        ((SubActivity) context).getSupportFragmentManager();
+        Bundle bundle = new Bundle();
+        bundle.putString("FileName", fileName);
+        bundle.putString("FileURL", fileURL);
+        ChapterFragment chapterFragment = new ChapterFragment();
+        chapterFragment.setArguments(bundle);
+        FragmentManager fragmentManager =
+                ((SubActivity) context).getSupportFragmentManager();
 
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, chapterFragment)
-                        .commit();
-                ((Activity) context).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialogAdapter.hideDialog();
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-            }                    // Handle any errors
-
-        });
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, chapterFragment)
+                .commit();
     }
 
 }
+
+

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -26,6 +27,7 @@ import java.io.IOException;
 public class ChapterFragment extends Fragment {
     private File pdfFile;
     private static final String TAG = "ChapterFragment";
+    private ProgressBar progressBar;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,6 +35,8 @@ public class ChapterFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_chapter, container, false);
         TextView title = getActivity().findViewById(R.id.subTitle);
         String fileName = getArguments().getString("FileName");
+        progressBar = rootView.findViewById(R.id.chapterProgressBar);
+        progressBar.setVisibility(View.VISIBLE);
         String fileUrl = getArguments().getString("FileURL");
         Typeface poppins_bold = Typeface.createFromAsset(getActivity().getAssets(), "fonts/poppins_bold.ttf");
         title.setText(fileName);
@@ -53,8 +57,10 @@ public class ChapterFragment extends Fragment {
             @Override
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 Log.d(TAG, "onSuccess: " + pdfFile.getName());
+                progressBar.setVisibility(View.GONE);
                 pdfView.fromFile(pdfFile).load();
                 pdfView.useBestQuality(true);
+                pdfView.documentFitsView();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

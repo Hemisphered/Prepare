@@ -1,5 +1,6 @@
 package com.madhouseapps.prepare.activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -45,6 +46,7 @@ import com.google.gson.Gson;
 import com.madhouseapps.prepare.R;
 import com.madhouseapps.prepare.adapters.CustomExpandableListAdapter;
 import com.madhouseapps.prepare.adapters.ProgressDialogAdapter;
+import com.madhouseapps.prepare.fragments.ChapterFragment;
 import com.madhouseapps.prepare.fragments.SubjectFragment;
 
 import java.io.File;
@@ -67,7 +69,7 @@ public class SubActivity extends AppCompatActivity
     private DrawerLayout mDrawerLayout;
     private static final String TAG = "SubActivity";
     private ActionBarDrawerToggle mDrawerToggle;
-    File pdfFile;
+    private File pdfFile;
     private String mActivityTitle;
     private String[] items;
     private String subject;
@@ -93,23 +95,36 @@ public class SubActivity extends AppCompatActivity
         subject = intent.getStringExtra("Subject");
         Toolbar toolbar = findViewById(R.id.toolbar);
         TextView title = toolbar.findViewById(R.id.subTitle);
-        title.setText(subject.toUpperCase());
         Typeface poppins_bold = Typeface.createFromAsset(getAssets(), "fonts/poppins_bold.ttf");
         Typeface poppins = Typeface.createFromAsset(getAssets(), "fonts/poppins.ttf");
         title.setTypeface(poppins_bold);
         title.setTextSize(24);
         ImageButton navigation = findViewById(R.id.navigation);
+        if (intent.getStringExtra("Activity").equals("Main")) {
+            title.setText(subject.toUpperCase());
+            Bundle bundle = new Bundle();
+            bundle.putString("Subject", subject);
+            SubjectFragment subjectFragment = new SubjectFragment();
+            subjectFragment.setArguments(bundle);
+            FragmentManager fragmentManager =
+                    getSupportFragmentManager();
 
-        Bundle bundle = new Bundle();
-        bundle.putString("Subject", subject);
-        SubjectFragment subjectFragment = new SubjectFragment();
-        subjectFragment.setArguments(bundle);
-        FragmentManager fragmentManager =
-                getSupportFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, subjectFragment)
+                    .commit();
+        } else {
+            Bundle bundle = new Bundle();
+            bundle.putString("FileName", intent.getStringExtra("fileName"));
+            bundle.putString("FileURL", intent.getStringExtra("fileURL"));
+            ChapterFragment chapterFragment = new ChapterFragment();
+            chapterFragment.setArguments(bundle);
+            FragmentManager fragmentManager =
+                    getSupportFragmentManager();
 
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, subjectFragment)
-                .commit();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, chapterFragment)
+                    .commit();
+        }
         initItems();
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mActivityTitle = getTitle().toString();
@@ -185,17 +200,14 @@ public class SubActivity extends AppCompatActivity
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
             }
 
             @Override
@@ -356,8 +368,8 @@ public class SubActivity extends AppCompatActivity
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
-            
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
         }
     }
 
@@ -369,65 +381,31 @@ public class SubActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+        if (getSupportFragmentManager().getFragments().get(0) instanceof ChapterFragment) {
+            Intent intent = new Intent(SubActivity.this,SubActivity.class);
+            intent.putExtra("Activity","Main");
+            intent.putExtra("Subject",subject);
+            startActivity(intent);
+        } else {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        }
     }
 
-    @Override
-    public int getRequestedOrientation() {
-        return super.getRequestedOrientation();
-    }
 
     private void displayPDF(String fileURL, String fileName) {
-        Log.d(TAG, "displayPDF: " + fileURL);
-        new DownloadFile().execute(fileURL, fileName);
-    }
+        Bundle bundle = new Bundle();
+        bundle.putString("FileName", fileName);
+        bundle.putString("FileURL", fileURL);
+        ChapterFragment chapterFragment = new ChapterFragment();
+        chapterFragment.setArguments(bundle);
+        FragmentManager fragmentManager =
+                getSupportFragmentManager();
 
-    private class DownloadFile extends AsyncTask<String, Void, Void> {
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, chapterFragment)
+                .commit();
 
-        @Override
-        protected Void doInBackground(String... strings) {
-            String fileUrl = strings[0];
-            String fileName = strings[1];
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progressDialogAdapter = new ProgressDialogAdapter(SubActivity.this);
-                    progressDialogAdapter.showDialog();
-                }
-            });
-            pdfFile = new File(getApplicationContext().getFilesDir(), fileName);
-            try {
-                pdfFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileUrl);
-            Log.d(TAG, "doInBackground: " + islandRef);
-            Log.d(TAG, "onSuccess: " + pdfFile.length());
-            islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(TAG, "onSuccess: " + pdfFile.length());
-
-                    FolioReader folioReader = new FolioReader(getApplicationContext());
-                    Log.d(TAG, "doInBackground: " + pdfFile.getAbsolutePath());
-                    folioReader.openBook(pdfFile.getAbsolutePath());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialogAdapter.hideDialog();
-                        }
-                    });
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                }                    // Handle any errors
-
-            });
-            return null;
-        }
     }
 }

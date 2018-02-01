@@ -37,6 +37,7 @@ public class BookmarkActivity extends AppCompatActivity {
     private List<String> subjectList = new ArrayList<>();
     private static final String TAG = "BookmarkActivity";
     private File pdfFile;
+    private String subject;
     private ProgressDialogAdapter progressDialogAdapter;
 
     @Override
@@ -59,6 +60,7 @@ public class BookmarkActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
                     final String chapterName = bookmaksList.get(i);
+                    subject = subjectList.get(i);
                     DatabaseReference databaseReference = firebaseDatabase.getReference(subjectList.get(i) + "_detailed_chapters/" + bookmaksList.get(i).replace(" ", ""));
                     databaseReference.addChildEventListener(new ChildEventListener() {
                         @Override
@@ -66,7 +68,7 @@ public class BookmarkActivity extends AppCompatActivity {
                             Log.d(TAG, "onChildAdded: " + dataSnapshot);
                             String fileURL = dataSnapshot.getValue(String.class);
                             Log.d(TAG, "onChildAdded: " + fileURL);
-                            displayPDF(fileURL, chapterName);
+                            displayPDF(fileURL, chapterName,subject);
                         }
 
                         @Override
@@ -94,56 +96,14 @@ public class BookmarkActivity extends AppCompatActivity {
         }
     }
 
-    private void displayPDF(String fileURL, String fileName) {
+    private void displayPDF(String fileURL, String fileName, String subject) {
         Log.d(TAG, "displayPDF: " + fileURL);
-        new DownloadFile().execute(fileURL, fileName);
-    }
-
-    private class DownloadFile extends AsyncTask<String, Void, Void> {
-
-        @Override
-        protected Void doInBackground(String... strings) {
-            String fileUrl = strings[0];
-            String fileName = strings[1];
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progressDialogAdapter = new ProgressDialogAdapter(BookmarkActivity.this);
-                    progressDialogAdapter.showDialog();
-                }
-            });
-            pdfFile = new File(getApplicationContext().getFilesDir(), fileName);
-            try {
-                pdfFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            StorageReference islandRef = FirebaseStorage.getInstance().getReferenceFromUrl(fileUrl);
-            Log.d(TAG, "doInBackground: " + islandRef);
-            Log.d(TAG, "onSuccess: " + pdfFile.length());
-            islandRef.getFile(pdfFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(TAG, "onSuccess: " + pdfFile.length());
-
-                    FolioReader folioReader = new FolioReader(getApplicationContext());
-                    Log.d(TAG, "doInBackground: " + pdfFile.getAbsolutePath());
-                    folioReader.openBook(pdfFile.getAbsolutePath());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialogAdapter.hideDialog();
-                        }
-                    });
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                }                    // Handle any errors
-
-            });
-            return null;
-        }
+        Intent intent = new Intent(BookmarkActivity.this, SubActivity.class);
+        intent.putExtra("Activity", "Bookmarks");
+        intent.putExtra("fileName", fileName);
+        intent.putExtra("fileURL", fileURL);
+        intent.putExtra("Subject",subject);
+        startActivity(intent);
     }
 
     @Override
@@ -152,6 +112,7 @@ public class BookmarkActivity extends AppCompatActivity {
         if (progressDialogAdapter != null)
             progressDialogAdapter.hideDialog();
     }
+
     public void onBackPressed() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
